@@ -1,72 +1,123 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-  <title>AR Hiro + GLB (24MB)</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>AR Hiro + Porsche GLB (VR world + gestes)</title>
 
+  <!-- A-Frame + AR.js + Gestures -->
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+  <script src="https://raw.githack.com/fcor/arjs-gestures/master/dist/gestures.js"></script>
 
   <style>
-    html, body { width:100%; height:100%; margin:0; overflow:hidden; background:#000; }
-    #hud{
-      position:fixed; left:12px; top:12px; z-index:9999;
-      background:rgba(0,0,0,.55); color:#fff; padding:10px 12px;
-      border-radius:10px; font-family:system-ui, -apple-system, Arial;
-      font-size:14px; line-height:1.25;
+    body { margin: 0; overflow: hidden; }
+    #info {
+      position: absolute; bottom: 20px; left: 0; width: 100%;
+      text-align: center; color: white; font-family: system-ui, -apple-system, Arial, sans-serif;
+      background: rgba(0,0,0,0.6); padding: 10px; box-sizing: border-box;
+      pointer-events: none; z-index: 100;
+    }
+    #hud {
+      position: absolute; top: 12px; left: 12px; z-index: 101;
+      background: rgba(0,0,0,0.55); color: #fff; padding: 8px 10px;
+      border-radius: 10px; font-family: system-ui, -apple-system, Arial, sans-serif;
+      font-size: 13px;
     }
   </style>
 </head>
+
 <body>
   <div id="hud">📦 Chargement du modèle…</div>
+  <div id="info">🔵 Pointez le marqueur Hiro → la Porsche apparaît. Pincez/drag/rotate pour manipuler.</div>
 
-  <a-scene
-    embedded
+  <a-scene embedded
+    arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3; trackingMethod: best;"
+    renderer="logarithmicDepthBuffer: true; antialias: true; colorManagement: true; physicallyCorrectLights: true;"
     vr-mode-ui="enabled:false"
-    renderer="antialias:true; colorManagement:true; physicallyCorrectLights:true;"
-    arjs="sourceType:webcam; debugUIEnabled:false; detectionMode:mono; trackingMethod:best;"
   >
-    <a-assets id="assets" timeout="60000">
-      <a-asset-item id="car" src="free_porsche_911_carrera_4s.glb"></a-asset-item>
+    <a-assets timeout="60000">
+      <!-- Fichier GLB dans le MÊME dossier que index.html -->
+      <a-asset-item id="porsche" src="free_porsche_911_carrera_4s.glb"></a-asset-item>
+
+      <!-- Grid (effet sol VR) -->
+      <img id="grid" src="https://cdn.aframe.io/a-painter/images/grid.png">
     </a-assets>
 
-    <a-entity light="type:ambient; intensity:0.9"></a-entity>
-    <a-entity light="type:directional; intensity:0.8" position="1 2 1"></a-entity>
+    <!-- ===== MARQUEUR HIRO ===== -->
+    <a-marker preset="hiro" id="marker" emitevents="true"
+      smooth="true" smoothCount="12" smoothTolerance="0.01" smoothThreshold="2"
+    >
+      <!-- Monde VR/3D attaché au marker -->
+      <a-entity id="vr-world" position="0 0 0" scale="1 1 1">
 
-    <a-marker preset="hiro" smooth="true" smoothCount="12" smoothTolerance="0.01" smoothThreshold="2">
-      <!-- Le modèle est invisible jusqu'à "model-loaded" -->
-      <a-entity id="obj" visible="false"
-        gltf-model="#car"
-        position="0 0 0"
-        rotation="0 0 0"
-        scale="0.02 0.02 0.02">
+        <!-- Sol (semi transparent) -->
+        <a-circle radius="3" rotation="-90 0 0" position="0 0 0"
+          material="src:#grid; repeat:8 8; transparent:true; opacity:0.18; color:#4FC3F7">
+        </a-circle>
+
+        <!-- Lumières -->
+        <a-light type="ambient" intensity="0.9"></a-light>
+        <a-light type="directional" intensity="0.85" position="2 5 3"></a-light>
+
+        <!-- Titre -->
+        <a-text value="PORSCHE AR" position="0 1.05 0" rotation="-90 0 0"
+          align="center" width="2" color="#FFC65D">
+        </a-text>
+
+        <!-- Porsche (interactable) -->
+        <a-entity
+          id="car"
+          class="interactable"
+          gltf-model="#porsche"
+          visible="false"
+          position="0 0 0"
+          rotation="0 0 0"
+          scale="0.02 0.02 0.02"
+          gesture-handler="minScale: 0.005; maxScale: 0.12"
+        ></a-entity>
+
+        <!-- Petit repère décoratif -->
+        <a-box position="0 0.25 -0.7" width="0.12" height="0.12" depth="0.12" color="#4FC3F7"
+          animation="property: rotation; to: 0 360 0; dur: 4000; loop: true">
+        </a-box>
+
       </a-entity>
     </a-marker>
 
+    <!-- Caméra -->
     <a-entity camera="near:0.01; far:1000"></a-entity>
   </a-scene>
 
   <script>
-    const hud = document.getElementById("hud");
-    const obj = document.getElementById("obj");
+    const hud = document.getElementById('hud');
+    const car = document.getElementById('car');
+    const marker = document.getElementById('marker');
 
-    // Progress (quand le navigateur peut l'estimer)
-    const assets = document.getElementById("assets");
-    assets.addEventListener("progress", (e) => {
-      // e.detail.loadedBytes / totalBytes n'existe pas toujours selon navigateur
-      hud.textContent = "📦 Chargement du modèle…";
+    // Affiche quand le marker est trouvé/perdu
+    marker.addEventListener('markerFound', () => {
+      hud.textContent = "✅ Marker détecté. Chargement / affichage…";
+    });
+    marker.addEventListener('markerLost', () => {
+      hud.textContent = "🔵 Cherche le marker Hiro…";
     });
 
-    obj.addEventListener("model-loaded", () => {
-      obj.setAttribute("visible", "true");
-      hud.textContent = "✅ Modèle chargé. Montre le marker Hiro.";
-      setTimeout(() => hud.style.display = "none", 2500);
+    // Chargement modèle
+    car.addEventListener('model-loaded', () => {
+      car.setAttribute('visible', 'true');
+      hud.textContent = "✅ Modèle chargé. Pince/drag/rotate pour manipuler.";
+      setTimeout(() => { hud.style.display = "none"; }, 2500);
     });
 
-    obj.addEventListener("model-error", (e) => {
-      hud.textContent = "❌ Erreur de chargement GLB. Vérifie le nom du fichier et GitHub Pages.";
+    car.addEventListener('model-error', (e) => {
+      hud.textContent = "❌ Erreur GLB. Vérifie le nom du fichier + GitHub Pages (https).";
       console.log("model-error", e);
+    });
+
+    // Petit “tap feedback” sur objet
+    car.addEventListener('click', () => {
+      car.setAttribute('scale', '0.022 0.022 0.022');
+      setTimeout(() => car.setAttribute('scale', '0.02 0.02 0.02'), 160);
     });
   </script>
 </body>
