@@ -3,67 +3,76 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Porsche 911 - AR Stable & Interactive</title>
-
+  <title>AR Porsche Permanente</title>
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
-  <script src="https://raw.githack.com/fcor/arjs-gestures/master/dist/gestures.js"></script>
-
   <style>
     body { margin: 0; overflow: hidden; }
-    #ui-overlay {
-      position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-      text-align: center; color: white; font-family: sans-serif;
-      background: rgba(0,0,0,0.7); padding: 12px 20px; border-radius: 25px;
-      pointer-events: none; z-index: 100; border: 1px solid #4FC3F7;
+    #overlay {
+      position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+      background: rgba(0,0,0,0.8); color: white; padding: 15px;
+      border-radius: 10px; font-family: sans-serif; z-index: 10; text-align: center;
     }
   </style>
 </head>
 
-<body style="margin: 0px; overflow: hidden;">
-  <div id="ui-overlay">🏎️ Porsche 911 : Pincez pour zoomer, glissez pour tourner.</div>
+<body>
+  <div id="overlay">
+    <span id="status">Scannez le marqueur Hiro pour placer la voiture</span>
+  </div>
 
   <a-scene 
     embedded 
-    arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3; sourceWidth:1280; sourceHeight:960; displayWidth:1280; displayHeight:960;"
-    renderer="logarithmicDepthBuffer: true; antialias: true; colorManagement: true;"
-    gesture-detector
-  >
+    arjs="sourceType: webcam; debugUIEnabled: false; trackingMethod: best;"
+    renderer="logarithmicDepthBuffer: true; antialias: true;">
 
     <a-assets>
       <a-asset-item id="porsche-model" src="free_porsche_911_carrera_4s.glb"></a-asset-item>
     </a-assets>
 
-    <a-marker 
-      preset="hiro" 
-      id="marker" 
-      emitevents="true"
-      smooth="true"
-      smoothCount="10"
-      smoothTolerance="0.01"
-      smoothThreshold="5"
-      raycaster="objects: .clickable"
-      cursor="fuse: false; rayOrigin: mouse;"
-    >
-      
-      <a-light type="ambient" color="#FFF" intensity="0.8"></a-light>
-      <a-light type="directional" color="#FFF" intensity="0.6" position="1 2 1"></a-light>
-
-      <a-entity
-        id="porsche-entity"
-        gltf-model="#porsche-model"
-        position="0 0 0"
-        scale="1 1 1"
-        class="interactable"
-        gesture-handler="minScale: 0.25; maxScale: 4"
-      >
-      </a-entity>
-
-      <a-ring color="#4FC3F7" radius-inner="0.8" radius-outer="0.9" rotation="-90 0 0" opacity="0.5"></a-ring>
-
+    <a-marker preset="hiro" id="hiro-marker">
+        <a-box position="0 0.1 0" scale="0.2 0.2 0.2" color="yellow" opacity="0.5"></a-box>
     </a-marker>
+
+    <a-entity id="porsche-fixe" 
+              gltf-model="#porsche-model" 
+              scale="1 1 1" 
+              visible="false">
+    </a-entity>
 
     <a-entity camera></a-entity>
   </a-scene>
+
+  <script>
+    const marker = document.querySelector('#hiro-marker');
+    const porsche = document.querySelector('#porsche-fixe');
+    const statusText = document.querySelector('#status');
+    let isPlaced = false;
+
+    marker.addEventListener('markerFound', () => {
+      if (!isPlaced) {
+        // 1. Récupérer la position et rotation actuelle du marqueur dans le monde réel
+        const worldPosition = new THREE.Vector3();
+        const worldRotation = new THREE.Quaternion();
+        const worldScale = new THREE.Vector3();
+        
+        marker.object3D.updateMatrixWorld();
+        marker.object3D.matrixWorld.decompose(worldPosition, worldRotation, worldScale);
+
+        // 2. Appliquer ces coordonnées à notre Porsche "hors-marqueur"
+        porsche.object3D.position.copy(worldPosition);
+        porsche.object3D.quaternion.copy(worldRotation);
+        
+        // 3. Rendre la voiture visible de façon permanente
+        porsche.setAttribute('visible', 'true');
+        
+        isPlaced = true;
+        statusText.innerText = "✅ Porsche fixée dans l'espace !";
+        statusText.style.color = "#4AF2A1";
+        
+        console.log("Objet fixé à :", worldPosition);
+      }
+    });
+  </script>
 </body>
 </html>
