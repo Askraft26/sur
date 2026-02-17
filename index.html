@@ -1,92 +1,31 @@
 <!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="utf-8" />
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
-  />
-
-  <!-- A-Frame 1.6.0 (OK avec AR.js 3.4.7) -->
-  <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
-
-  <!-- AR.js (pinné en 3.4.7 pour stabilité) -->
-  <script src="https://raw.githack.com/AR-js-org/AR.js/3.4.7/aframe/build/aframe-ar.js"></script>
-
-  <script>
-    // Petit “boost” perf : limite le pixel ratio (évite 3x/4x sur iPhone haut DPR)
-    AFRAME.registerComponent('cap-pixel-ratio', {
-      init() {
-        const sceneEl = this.el;
-        sceneEl.addEventListener('loaded', () => {
-          const r = sceneEl.renderer;
-          if (!r) return;
-          const cap = 1.5; // augmente si tu veux plus net (2.0), baisse si tu veux plus FPS (1.0)
-          r.setPixelRatio(Math.min(window.devicePixelRatio || 1, cap));
-        });
-      }
-    });
-
-    // Optionnel: cache le modèle quand le marker est perdu (économie GPU)
-    AFRAME.registerComponent('hide-when-lost', {
-      init() {
-        const marker = this.el;
-        marker.addEventListener('markerFound', () => { marker.object3D.visible = true; });
-        marker.addEventListener('markerLost',  () => { marker.object3D.visible = false; });
-      }
-    });
-  </script>
-</head>
-
-<body style="margin:0; overflow:hidden;">
-  <a-scene
-    embedded
-    cap-pixel-ratio
-    vr-mode-ui="enabled: false"
-    loading-screen="enabled: false"
-    renderer="
-      precision: medium;
-      antialias: auto;
-      alpha: true;
-      maxCanvasWidth: 1280;
-      maxCanvasHeight: 720;
-    "
-    arjs="
-      sourceType: webcam;
-      debugUIEnabled: false;
-      detectionMode: mono;
-      maxDetectionRate: 30;
-    "
-  >
-    <a-assets timeout="10000">
-      <!-- Préchargement = moins de “lags” quand le marker apparaît -->
-      <a-asset-item id="carModel" src="free_porsche_911_carrera_4s.glb"></a-asset-item>
-    </a-assets>
-
-    <a-marker
-      preset="hiro"
-      emitevents="true"
-      hide-when-lost
-
-      <!-- SMOOTHING = stabilité (moins de jitter, un peu plus de “latence”) -->
-      smooth="true"
-      smoothCount="10"
-      smoothTolerance="0.01"
-      smoothThreshold="5"
+<html>
+  <head>
+    <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+  </head>
+  <body style="margin: 0px; overflow: hidden">
+    <a-scene 
+      embedded 
+      arjs="sourceType: webcam; debugUIEnabled: false; trackingMethod: best; sourceWidth: 1280; sourceHeight: 960; displayWidth: 1280; displayHeight: 960;"
+      renderer="logarithmicDepthBuffer: true; antialias: true; colorManagement: true;"
     >
-      <a-entity
-        gltf-model="#carModel"
-        position="0 0 0"
-        rotation="0 0 0"
-        scale="1 1 1"
-      ></a-entity>
-    </a-marker>
-
-    <a-entity
-      camera
-      look-controls="enabled: false"
-      wasd-controls-enabled="false"
-    ></a-entity>
-  </a-scene>
-</body>
+      <a-marker 
+        preset="hiro"
+        smooth="true"
+        smoothCount="10"
+        smoothTolerance="0.01"
+        smoothThreshold="5"
+      >
+        <a-entity 
+          position="0 0 0" 
+          rotation="0 0 0" 
+          scale="1 1 1" 
+          gltf-model="free_porsche_911_carrera_4s.glb">
+        </a-entity>
+      </a-marker>
+      
+      <a-entity camera></a-entity>
+    </a-scene>
+  </body>
 </html>
