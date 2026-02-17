@@ -3,102 +3,67 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Porsche Réaliste Permanente</title>
+  <title>Porsche 911 - AR Stable & Interactive</title>
+
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
   <script src="https://raw.githack.com/fcor/arjs-gestures/master/dist/gestures.js"></script>
 
   <style>
     body { margin: 0; overflow: hidden; }
-    #ui {
-      position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
-      background: rgba(0,0,0,0.8); color: white; padding: 12px 25px;
-      border-radius: 30px; font-family: 'Segoe UI', sans-serif; z-index: 100;
-      border: 2px solid #4FC3F7; text-align: center; min-width: 250px;
-    }
-    .btn-reset {
-      margin-top: 10px; padding: 5px 15px; background: #4FC3F7; border: none;
-      border-radius: 5px; cursor: pointer; color: black; font-weight: bold;
+    #ui-overlay {
+      position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+      text-align: center; color: white; font-family: sans-serif;
+      background: rgba(0,0,0,0.7); padding: 12px 20px; border-radius: 25px;
+      pointer-events: none; z-index: 100; border: 1px solid #4FC3F7;
     }
   </style>
 </head>
 
-<body>
-  <div id="ui">
-    <div id="msg">Scannez Hiro pour ancrer la Porsche</div>
-    <button class="btn-reset" onclick="resetPosition()">Repositionner</button>
-  </div>
+<body style="margin: 0px; overflow: hidden;">
+  <div id="ui-overlay">🏎️ Porsche 911 : Pincez pour zoomer, glissez pour tourner.</div>
 
   <a-scene 
     embedded 
-    arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;"
-    renderer="logarithmicDepthBuffer: true; antialias: true; colorManagement: true; shadowMapEnabled: true;"
-    gesture-detector>
+    arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3; sourceWidth:1280; sourceHeight:960; displayWidth:1280; displayHeight:960;"
+    renderer="logarithmicDepthBuffer: true; antialias: true; colorManagement: true;"
+    gesture-detector
+  >
 
     <a-assets>
       <a-asset-item id="porsche-model" src="free_porsche_911_carrera_4s.glb"></a-asset-item>
     </a-assets>
 
-    <a-marker preset="hiro" id="hiro-marker">
-      <a-ring color="#4FC3F7" radius-inner="0.5" radius-outer="0.6" rotation="-90 0 0"></a-ring>
-    </a-marker>
-
-    <a-entity id="anchor-point" visible="false">
+    <a-marker 
+      preset="hiro" 
+      id="marker" 
+      emitevents="true"
+      smooth="true"
+      smoothCount="10"
+      smoothTolerance="0.01"
+      smoothThreshold="5"
+      raycaster="objects: .clickable"
+      cursor="fuse: false; rayOrigin: mouse;"
+    >
       
-      <a-light type="ambient" intensity="0.7"></a-light>
-      <a-light type="directional" intensity="1" position="1 5 2" castShadow="true"></a-light>
+      <a-light type="ambient" color="#FFF" intensity="0.8"></a-light>
+      <a-light type="directional" color="#FFF" intensity="0.6" position="1 2 1"></a-light>
 
-      <a-entity 
-        id="porsche-model-entity"
-        gltf-model="#porsche-model" 
-        scale="1.5 1.5 1.5"
+      <a-entity
+        id="porsche-entity"
+        gltf-model="#porsche-model"
+        position="0 0 0"
+        scale="1 1 1"
         class="interactable"
-        gesture-handler="minScale: 0.5; maxScale: 5">
+        gesture-handler="minScale: 0.25; maxScale: 4"
+      >
       </a-entity>
 
-      <a-plane rotation="-90 0 0" width="10" height="10" 
-               material="shadowOnly: true" shadow="receive: true"></a-plane>
-    </a-entity>
+      <a-ring color="#4FC3F7" radius-inner="0.8" radius-outer="0.9" rotation="-90 0 0" opacity="0.5"></a-ring>
+
+    </a-marker>
 
     <a-entity camera></a-entity>
   </a-scene>
-
-  <script>
-    const marker = document.querySelector('#hiro-marker');
-    const anchor = document.querySelector('#anchor-point');
-    const msg = document.querySelector('#msg');
-    let isAnchored = false;
-
-    // Détection et ancrage
-    marker.addEventListener('markerFound', () => {
-      if (!isAnchored) {
-        const worldPos = new THREE.Vector3();
-        const worldQuat = new THREE.Quaternion();
-        
-        // On capture la position précise du marqueur dans l'espace réel
-        marker.object3D.updateMatrixWorld();
-        marker.object3D.matrixWorld.decompose(worldPos, new THREE.Quaternion(), new THREE.Vector3());
-        
-        // On fixe l'ancre à cet endroit
-        anchor.object3D.position.copy(worldPos);
-        // On peut aussi copier la rotation si on veut que la voiture soit orientée comme le marqueur
-        marker.object3D.matrixWorld.decompose(new THREE.Vector3(), worldQuat, new THREE.Vector3());
-        anchor.object3D.quaternion.copy(worldQuat);
-
-        anchor.setAttribute('visible', 'true');
-        isAnchored = true;
-        msg.innerText = "🏎️ Porsche fixée dans le monde réel";
-        msg.style.color = "#4AF2A1";
-      }
-    });
-
-    // Fonction pour replacer la voiture
-    function resetPosition() {
-      isAnchored = false;
-      anchor.setAttribute('visible', 'false');
-      msg.innerText = "Scannez Hiro pour ancrer la Porsche";
-      msg.style.color = "white";
-    }
-  </script>
 </body>
 </html>
