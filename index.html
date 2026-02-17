@@ -1,47 +1,73 @@
 <!doctype html>
 <html lang="fr">
 <head>
- <meta charset="utf-8" />
- <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
- <title>AR Hiro + GLB</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+  <title>AR Hiro + GLB (24MB)</title>
 
- <!-- A-Frame -->
- <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
- <!-- AR.js -->
- <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
 
- <style>
- html, body { width:100%; height:100%; margin:0; overflow:hidden; background:#000; }
- </style>
+  <style>
+    html, body { width:100%; height:100%; margin:0; overflow:hidden; background:#000; }
+    #hud{
+      position:fixed; left:12px; top:12px; z-index:9999;
+      background:rgba(0,0,0,.55); color:#fff; padding:10px 12px;
+      border-radius:10px; font-family:system-ui, -apple-system, Arial;
+      font-size:14px; line-height:1.25;
+    }
+  </style>
 </head>
-
 <body>
- <a-scene
- embedded
- vr-mode-ui="enabled:false"
- renderer="antialias:true; colorManagement:true; physicallyCorrectLights:true;"
- arjs="sourceType:webcam; debugUIEnabled:false; detectionMode:mono; trackingMethod:best;"
- >
- <a-assets timeout="20000">
- <!-- Le .glb est dans le même dossier que index.html -->
- <a-asset-item id="car" src="free_porsche_911_carrera_4s.glb"></a-asset-item>
- </a-assets>
+  <div id="hud">📦 Chargement du modèle…</div>
 
- <!-- Lumières -->
- <a-entity light="type:ambient; intensity:0.9"></a-entity>
- <a-entity light="type:directional; intensity:0.8" position="1 2 1"></a-entity>
+  <a-scene
+    embedded
+    vr-mode-ui="enabled:false"
+    renderer="antialias:true; colorManagement:true; physicallyCorrectLights:true;"
+    arjs="sourceType:webcam; debugUIEnabled:false; detectionMode:mono; trackingMethod:best;"
+  >
+    <a-assets id="assets" timeout="60000">
+      <a-asset-item id="car" src="free_porsche_911_carrera_4s.glb"></a-asset-item>
+    </a-assets>
 
- <!-- Marqueur Hiro + lissage -->
- <a-marker preset="hiro" smooth="true" smoothCount="12" smoothTolerance="0.01" smoothThreshold="2">
- <a-entity
- gltf-model="#car"
- position="0 0 0"
- rotation="0 0 0"
- scale="0.01 0.01 0.01">
- </a-entity>
- </a-marker>
+    <a-entity light="type:ambient; intensity:0.9"></a-entity>
+    <a-entity light="type:directional; intensity:0.8" position="1 2 1"></a-entity>
 
- <a-entity camera="near:0.01; far:1000"></a-entity>
- </a-scene>
+    <a-marker preset="hiro" smooth="true" smoothCount="12" smoothTolerance="0.01" smoothThreshold="2">
+      <!-- Le modèle est invisible jusqu'à "model-loaded" -->
+      <a-entity id="obj" visible="false"
+        gltf-model="#car"
+        position="0 0 0"
+        rotation="0 0 0"
+        scale="0.02 0.02 0.02">
+      </a-entity>
+    </a-marker>
+
+    <a-entity camera="near:0.01; far:1000"></a-entity>
+  </a-scene>
+
+  <script>
+    const hud = document.getElementById("hud");
+    const obj = document.getElementById("obj");
+
+    // Progress (quand le navigateur peut l'estimer)
+    const assets = document.getElementById("assets");
+    assets.addEventListener("progress", (e) => {
+      // e.detail.loadedBytes / totalBytes n'existe pas toujours selon navigateur
+      hud.textContent = "📦 Chargement du modèle…";
+    });
+
+    obj.addEventListener("model-loaded", () => {
+      obj.setAttribute("visible", "true");
+      hud.textContent = "✅ Modèle chargé. Montre le marker Hiro.";
+      setTimeout(() => hud.style.display = "none", 2500);
+    });
+
+    obj.addEventListener("model-error", (e) => {
+      hud.textContent = "❌ Erreur de chargement GLB. Vérifie le nom du fichier et GitHub Pages.";
+      console.log("model-error", e);
+    });
+  </script>
 </body>
 </html>
