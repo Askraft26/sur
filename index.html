@@ -1,31 +1,69 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
-    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
-  </head>
-  <body style="margin: 0px; overflow: hidden">
-    <a-scene 
-      embedded 
-      arjs="sourceType: webcam; debugUIEnabled: false; trackingMethod: best; sourceWidth: 1280; sourceHeight: 960; displayWidth: 1280; displayHeight: 960;"
-      renderer="logarithmicDepthBuffer: true; antialias: true; colorManagement: true;"
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Porsche 911 - AR Stable & Interactive</title>
+
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+  <script src="https://raw.githack.com/fcor/arjs-gestures/master/dist/gestures.js"></script>
+
+  <style>
+    body { margin: 0; overflow: hidden; }
+    #ui-overlay {
+      position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+      text-align: center; color: white; font-family: sans-serif;
+      background: rgba(0,0,0,0.7); padding: 12px 20px; border-radius: 25px;
+      pointer-events: none; z-index: 100; border: 1px solid #4FC3F7;
+    }
+  </style>
+</head>
+
+<body style="margin: 0px; overflow: hidden;">
+  <div id="ui-overlay">🏎️ Porsche 911 : Pincez pour zoomer, glissez pour tourner.</div>
+
+  <a-scene 
+    embedded 
+    arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3; sourceWidth:1280; sourceHeight:960; displayWidth:1280; displayHeight:960;"
+    renderer="logarithmicDepthBuffer: true; antialias: true; colorManagement: true;"
+    gesture-detector
+  >
+
+    <a-assets>
+      <a-asset-item id="porsche-model" src="free_porsche_911_carrera_4s.glb"></a-asset-item>
+    </a-assets>
+
+    <a-marker 
+      preset="hiro" 
+      id="marker" 
+      emitevents="true"
+      smooth="true"
+      smoothCount="10"
+      smoothTolerance="0.01"
+      smoothThreshold="5"
+      raycaster="objects: .clickable"
+      cursor="fuse: false; rayOrigin: mouse;"
     >
-      <a-marker 
-        preset="hiro"
-        smooth="true"
-        smoothCount="10"
-        smoothTolerance="0.01"
-        smoothThreshold="5"
-      >
-        <a-entity 
-          position="0 0 0" 
-          rotation="0 0 0" 
-          scale="1 1 1" 
-          gltf-model="free_porsche_911_carrera_4s.glb">
-        </a-entity>
-      </a-marker>
       
-      <a-entity camera></a-entity>
-    </a-scene>
-  </body>
+      <a-light type="ambient" color="#FFF" intensity="0.8"></a-light>
+      <a-light type="directional" color="#FFF" intensity="0.6" position="1 2 1"></a-light>
+
+      <a-entity
+        id="porsche-entity"
+        gltf-model="#porsche-model"
+        position="0 0 0"
+        scale="1 1 1"
+        class="interactable"
+        gesture-handler="minScale: 0.25; maxScale: 4"
+      >
+      </a-entity>
+
+      <a-ring color="#4FC3F7" radius-inner="0.8" radius-outer="0.9" rotation="-90 0 0" opacity="0.5"></a-ring>
+
+    </a-marker>
+
+    <a-entity camera></a-entity>
+  </a-scene>
+</body>
 </html>
