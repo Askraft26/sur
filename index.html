@@ -1,229 +1,83 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>AR</title>
-
-  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-  <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
-  <script src="https://raw.githack.com/fcor/arjs-gestures/master/dist/gestures.js"></script>
-
-  <style>
-    html, body { margin:0; height:100%; overflow:hidden; background:#000; }
-
-    #ui-overlay{
-      position: fixed;
-      left: 50%;
-      bottom: 18px;
-      transform: translateX(-50%);
-      z-index: 9999;
-      pointer-events: none;
-
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      font-size: 14px;
-      color: #0b1a24;
-
-      background: rgba(255,255,255,0.85);
-      border: 1px solid rgba(79,195,247,0.9);
-      padding: 10px 14px;
-      border-radius: 999px;
-      box-shadow: 0 10px 28px rgba(0,0,0,0.35);
-      backdrop-filter: blur(6px);
-      -webkit-backdrop-filter: blur(6px);
-      max-width: min(92vw, 520px);
-      text-align: center;
-    }
-    #ui-overlay b{ color:#006aa6; }
-  </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>AR Porsche - Haute Luminosité</title>
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    <script src="https://raw.githack.com/fcor/arjs-gestures/master/dist/gestures.js"></script>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        #ui-overlay {
+            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+            text-align: center; color: white; font-family: sans-serif;
+            background: rgba(0,0,0,0.7); padding: 12px 20px; border-radius: 25px;
+            z-index: 100; border: 1px solid #4FC3F7; pointer-events: none;
+        }
+    </style>
 </head>
 
-<body>
-  <div id="ui-overlay">🤏 <b>Pincez</b> pour zoomer · ☝️ <b>Glissez</b> pour tourner</div>
+<body style="margin: 0px; overflow: hidden;">
+    <div id="ui-overlay">Pincez pour zoomer, glissez pour tourner.</div>
 
-  <a-scene
-    embedded
-    vr-mode-ui="enabled: false"
-    arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3; sourceWidth:1280; sourceHeight:960; displayWidth:1280; displayHeight:960;"
-    renderer="antialias: true; colorManagement: true; physicallyCorrectLights: true;"
-    gesture-detector
-  >
-    <a-assets>
-      <a-asset-item id="porsche-model" src="M1.glb"></a-asset-item>
-    </a-assets>
+    <a-scene 
+        embedded 
+        arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;" 
+        renderer="logarithmicDepthBuffer: true; antialias: true; colorManagement: true; exposure: 1.5; toneMapping: ACESFilmic;"
+        gesture-detector>
 
-    <!-- Caméra + éclairage attaché (comme un flash) -->
-    <a-entity camera>
-      <a-light type="ambient" intensity="1.4" color="#ffffff"></a-light>
-      <a-light type="directional" intensity="1.2" color="#ffffff" position="0 1 1"></a-light>
-      <a-light type="point" intensity="0.7" distance="8" decay="2" color="#ffffff" position="0 0.6 1.2"></a-light>
-    </a-entity>
+        <a-assets>
+            <a-asset-item id="porsche-model" src="M1.glb"></a-asset-item>
+        </a-assets>
 
-    <a-marker
-      preset="hiro"
-      id="marker"
-      emitevents="true"
-      smooth="true"
-      smoothCount="10"
-      smoothTolerance="0.01"
-      smoothThreshold="5"
-      cursor="fuse: false; rayOrigin: mouse;"
-    >
-      <a-entity
-        id="porsche-entity"
-        gltf-model="#porsche-model"
-        position="0 0 0"
-        scale="1 1 1"
-        class="interactable"
-        gesture-handler="minScale: 0.25; maxScale: 4"
-      ></a-entity>
+        <a-marker preset="hiro" id="marker" emitevents="true" cursor="fuse: false; rayOrigin: mouse;">
+            
+            <a-entity light="type: ambient; color: #FFF; intensity: 1.5"></a-entity>
+            
+            <a-entity light="type: hemisphere; color: #ffffff; groundColor: #444444; intensity: 2"></a-entity>
+            
+            <a-entity light="type: directional; color: #FFF; intensity: 1.2; castShadow: true;" position="-1 4 2"></a-entity>
 
-      <a-ring color="#4FC3F7" radius-inner="0.8" radius-outer="0.9" rotation="-90 0 0" opacity="0.65"></a-ring>
-    </a-marker>
+            <a-entity 
+                id="porsche-entity" 
+                gltf-model="#porsche-model" 
+                position="0 0 0" 
+                scale="1 1 1" 
+                class="clickable" 
+                gesture-handler="minScale: 0.25; maxScale: 4"
+                model-brightener> </a-entity>
 
-  </a-scene>
-</body>
-</html>
+            <a-ring color="#4FC3F7" radius-inner="0.8" radius-outer="0.9" rotation="-90 0 0" opacity="0.5"></a-ring>
+            
+        </a-marker>
 
-  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-  <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
-  <script src="https://raw.githack.com/fcor/arjs-gestures/master/dist/gestures.js"></script>
+        <a-entity camera></a-entity>
+    </a-scene>
 
-  <style>
-    html, body { margin: 0; height: 100%; overflow: hidden; background: #000; }
-
-    /* UI plus lisible (pas sombre) */
-    #ui-overlay{
-      position: fixed;
-      left: 50%;
-      bottom: 18px;
-      transform: translateX(-50%);
-      z-index: 9999;
-      pointer-events: none;
-
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      font-size: 14px;
-      line-height: 1.2;
-      color: #0b1a24;
-
-      background: rgba(255,255,255,0.82);
-      border: 1px solid rgba(79,195,247,0.85);
-      box-shadow: 0 10px 28px rgba(0,0,0,0.35);
-      padding: 10px 14px;
-      border-radius: 999px;
-      backdrop-filter: blur(6px);
-      -webkit-backdrop-filter: blur(6px);
-      text-align: center;
-      max-width: min(92vw, 520px);
-    }
-
-    #ui-overlay b { color: #006aa6; }
-
-    /* Éclaircit un peu la caméra (utile si ton environnement est sombre) */
-    #arjs-video {
-      filter: brightness(1.12) contrast(1.08) saturate(1.18);
-      -webkit-filter: brightness(1.12) contrast(1.08) saturate(1.18);
-    }
-  </style>
-
-  <script>
-    // Optionnel : boost léger des matériaux (si ton GLB reste sombre)
-    AFRAME.registerComponent('pbr-boost', {
-      schema: {
-        emissive: { default: 0.12 },   // 0.08 à 0.25 selon besoin
-        env: { default: 1.0 }         // intensité "simulée" (selon moteurs)
-      },
-      init() {
-        const el = this.el;
-        el.addEventListener('model-loaded', () => {
-          const obj = el.getObject3D('mesh');
-          if (!obj) return;
-
-          obj.traverse((n) => {
-            if (!n.isMesh || !n.material) return;
-
-            const mats = Array.isArray(n.material) ? n.material : [n.material];
-            mats.forEach((m) => {
-              // évite de casser les matériaux non-PBR
-              if ('emissive' in m) {
-                m.emissive.setRGB(1, 1, 1);
-                m.emissiveIntensity = Math.max(m.emissiveIntensity || 0, this.data.emissive);
-              }
-              // Force update
-              m.needsUpdate = true;
-            });
-          });
+    <script>
+        /**
+         * Script spécial pour forcer la luminosité des matériaux du modèle
+         * Utile si le fichier GLB a des paramètres "Metalness" trop élevés sans environnement
+         */
+        AFRAME.registerComponent('model-brightener', {
+            init: function () {
+                this.el.addEventListener('model-loaded', () => {
+                    const mesh = this.el.getObject3D('mesh');
+                    mesh.traverse(node => {
+                        if (node.isMesh) {
+                            // On augmente l'intensité des couleurs de la texture
+                            node.material.emissiveIntensity = 0.5; 
+                            // On empêche le modèle d'être trop sombre à cause du manque de reflets
+                            if (node.material.metalness > 0.5) {
+                                node.material.metalness = 0.3; 
+                            }
+                            node.material.needsUpdate = true;
+                        }
+                    });
+                });
+            }
         });
-      }
-    });
-  </script>
-</head>
-
-<body>
-  <div id="ui-overlay">🤏 <b>Pincez</b> pour zoomer · ☝️ <b>Glissez</b> pour tourner</div>
-
-  <a-scene
-    embedded
-    arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3; sourceWidth:1280; sourceHeight:960; displayWidth:1280; displayHeight:960;"
-    renderer="
-      antialias: true;
-      colorManagement: true;
-      physicallyCorrectLights: true;
-      toneMapping: acesfilmic;
-      toneMappingExposure: 1.45;
-      logarithmicDepthBuffer: true;
-    "
-    gesture-detector
-  >
-    <a-assets>
-      <a-asset-item id="porsche-model" src="M1.glb"></a-asset-item>
-    </a-assets>
-
-    <!-- ✅ LIGHT RIG attaché à la caméra : couleurs plus visibles et stable -->
-    <a-entity camera>
-      <a-light type="ambient" color="#ffffff" intensity="1.35"></a-light>
-      <a-light type="hemisphere" color="#ffffff" groundColor="#dbe9ff" intensity="0.85"></a-light>
-
-      <!-- “Headlight” (éclaire toujours l’objet) -->
-      <a-light type="directional" color="#ffffff" intensity="1.25" position="0 1 1"></a-light>
-      <a-light type="point" color="#ffffff" intensity="0.55" distance="6" decay="2" position="0 0.8 1.2"></a-light>
-    </a-entity>
-
-    <a-marker
-      preset="hiro"
-      id="marker"
-      emitevents="true"
-      smooth="true"
-      smoothCount="10"
-      smoothTolerance="0.01"
-      smoothThreshold="5"
-      cursor="fuse: false; rayOrigin: mouse;"
-    >
-      <a-entity
-        id="porsche-entity"
-        gltf-model="#porsche-model"
-        position="0 0 0"
-        scale="1 1 1"
-        class="interactable"
-        gesture-handler="minScale: 0.25; maxScale: 4"
-        pbr-boost="emissive: 0.12"
-      ></a-entity>
-
-      <a-ring
-        color="#4FC3F7"
-        radius-inner="0.8"
-        radius-outer="0.9"
-        rotation="-90 0 0"
-        opacity="0.65"
-      ></a-ring>
-    </a-marker>
-  </a-scene>
+    </script>
 </body>
 </html>
-
-
